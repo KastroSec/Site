@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GabiCat: Jornada do Coração</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffd1dc, #ff99cc);
+            color: #ff6699;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 4px solid #ff99cc;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #ff6699;
+            text-shadow: 2px 2px 5px #fff0f5;
+        }
+        #restartBtn {
+            padding: 10px 20px;
+            background: #ff99cc;
+            border: 2px solid #ff6699;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        #restartBtn:hover {
+            transform: scale(1.1);
+        }
+        #gameContainer {
+            max-width: 800px;
+            margin: 20px auto;
+            flex-grow: 1;
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(255, 102, 153, 0.4);
+            overflow: hidden;
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: #fff0f5;
+            border: 4px solid #ffcccc;
+            border-radius: 10px;
+        }
+        #stats {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 1.5em;
+            color: #ff6699;
+            text-shadow: 1px 1px 2px #fff;
+            z-index: 5;
+        }
+        #storyOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 102, 153, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        #storyContent {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(255, 102, 153, 0.6);
+            border: 2px solid #ff99cc;
+        }
+        #storyContent h2 {
+            color: #ff6699;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px #fff;
+        }
+        #storyContent p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #ff6699;
+        }
+        #nextBtn {
+            padding: 12px 25px;
+            background: #ff99cc;
+            border: 2px solid #ff6699;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 5;
+        }
+        .controlBtn {
+            width: 60px;
+            height: 60px;
+            background: #ff99cc;
+            border: 2px solid #ff6699;
+            border-radius: 50%;
+            font-size: 1.8em;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .controlBtn:hover {
+            background: #ff6699;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 1em;
+            color: #ff6699;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 4px solid #ff99cc;
+            text-shadow: 1px 1px 2px #fff;
+        }
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.8em; }
+            #gameCanvas { height: 300px; }
+            #storyContent { max-width: 90%; }
+            #stats { font-size: 1.2em; }
+            .controlBtn { width: 50px; height: 50px; font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Música de fundo -->
+    <iframe width="0" height="0" src="https://www.youtube.com/embed/4UjPRvyn3J4?autoplay=1&loop=1&playlist=4UjPRvyn3J4" frameborder="0" allowfullscreen></iframe>
+
+    <header>
+        <h1>GabiCat: O jogo feito pra mais linda</h1>
+        <button id="restartBtn">Reiniciar</button>
+    </header>
+
+    <div id="gameContainer">
+        <div id="stats">Vidas: 5 | Fase: 1</div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="controls">
+            <button class="controlBtn" id="leftBtn">←</button>
+            <button class="controlBtn" id="jumpBtn">↑</button>
+            <button class="controlBtn" id="rightBtn">→</button>
+        </div>
+    </div>
+
+    <div id="storyOverlay">
+        <div id="storyContent">
+            <h2 id="storyTitle"></h2>
+            <p id="storyText"></p>
+            <button id="nextBtn">Continuar</button>
+        </div>
+    </div>
+
+    <footer>
+        Feito com muito amor por Kayc 💖✨
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const statsDisplay = document.getElementById('stats');
+        const storyOverlay = document.getElementById('storyOverlay');
+        const storyTitle = document.getElementById('storyTitle');
+        const storyText = document.getElementById('storyText');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        // Configurações do canvas
+        canvas.width = 800;
+        canvas.height = 400;
+
+        // Variáveis do jogo
+        const gravity = 0.7;
+        const friction = 0.85;
+        let cat = {
+            x: 50,
+            y: canvas.height - 60,
+            width: 40,
+            height: 40,
+            vx: 0,
+            vy: 0,
+            speed: 6,
+            jumpForce: -16,
+            jumping: false
+        };
+        let lives = 51;
+        let level = 1;
+        let isPaused = false;
+        let keys = { left: false, right: false, jump: false };
+        let cameraX = 0;
+
+        // Definição das fases com plataformas variadas e dinâmicas
+        const levels = [
+            {
+                platforms: [
+                    { x: 0, y: canvas.height - 40, width: 400, height: 40 },
+                    { x: 500, y: canvas.height - 120, width: 200, height: 40 },
+                    { x: 800, y: canvas.height - 200, width: 300, height: 40 },
+                    { x: 1200, y: canvas.height - 280, width: 250, height: 40, dynamic: true, minWidth: 100, maxWidth: 250, speed: 1 }
+                ],
+                hearts: [{ x: 1350, y: canvas.height - 320, width: 20, height: 20, collected: false }],
+                enemies: [
+                    { x: 600, y: canvas.height - 120, width: 40, height: 40, speed: 2, direction: 1, platformIndex: 1 }
+                ]
+            },
+            {
+                platforms: [
+                    { x: 0, y: canvas.height - 40, width: 300, height: 40 },
+                    { x: 400, y: canvas.height - 100, width: 250, height: 40 },
+                    { x: 700, y: canvas.height - 180, width: 200, height: 40, dynamic: true, minWidth: 100, maxWidth: 200, speed: 1.5 },
+                    { x: 1000, y: canvas.height - 260, width: 300, height: 40 },
+                    { x: 1400, y: canvas.height - 340, width: 400, height: 40 }
+                ],
+                hearts: [{ x: 1550, y: canvas.height - 380, width: 20, height: 20, collected: false }],
+                enemies: [
+                    { x: 500, y: canvas.height - 100, width: 40, height: 40, speed: 2, direction: -1, platformIndex: 1 },
+                    { x: 1200, y: canvas.height - 260, width: 40, height: 40, speed: 2, direction: 1, platformIndex: 3 }
+                ]
+            },
+                {
+        platforms: [
+            { x: 0, y: 360, width: 350, height: 40 },           // Baixa
+            { x: 450, y: 250, width: 300, height: 40 },         // Média
+            { x: 800, y: 150, width: 250, height: 40 },         // Alta
+            { x: 1100, y: 300, width: 200, height: 40 },        // Média-baixa
+            { x: 1400, y: 200, width: 450, height: 40 }         // Média-alta
+        ],
+        hearts: [{ x: 1450, y: 180, width: 20, height: 20, collected: false }],
+        enemies: [
+            { x: 600, y: 250, width: 40, height: 40, speed: 2, direction: -1, platformIndex: 1 },
+            { x: 1300, y: 300, width: 40, height: 40, speed: 2, direction: 1, platformIndex: 3 }
+        ]
+    },
+    {
+        platforms: [
+            { x: 0, y: 360, width: 300, height: 40 },           // Baixa
+            { x: 400, y: 280, width: 250, height: 40 },         // Média
+            { x: 700, y: 200, width: 300, height: 40 },         // Média-alta
+            { x: 1100, y: 120, width: 350, height: 40 },        // Alta
+            { x: 1500, y: 250, width: 400, height: 40 },        // Média
+            { x: 2000, y: 150, width: 450, height: 40 }         // Alta
+        ],
+        hearts: [{ x: 2050, y: 130, width: 20, height: 20, collected: false }],
+        enemies: [
+            { x: 500, y: 280, width: 40, height: 40, speed: 2, direction: 1, platformIndex: 1 },
+            { x: 1200, y: 120, width: 40, height: 40, speed: 2, direction: -1, platformIndex: 3 },
+            { x: 1600, y: 250, width: 40, height: 40, speed: 2, direction: 1, platformIndex: 4 }
+        ]
+    },
+    {
+        platforms: [
+            { x: 0, y: 360, width: 350, height: 40 },           // Baixa
+            { x: 450, y: 300, width: 300, height: 40 },         // Média-baixa
+            { x: 800, y: 220, width: 250, height: 40 },         // Média
+            { x: 1100, y: 140, width: 400, height: 40 },        // Alta
+            { x: 1600, y: 280, width: 350, height: 40 },        // Média
+            { x: 2050, y: 180, width: 500, height: 40 }         // Média-alta
+        ],
+        hearts: [{ x: 2100, y: 160, width: 20, height: 20, collected: false }],
+        enemies: [
+            { x: 600, y: 300, width: 40, height: 40, speed: 2, direction: -1, platformIndex: 1 },
+            { x: 1300, y: 140, width: 40, height: 40, speed: 2, direction: 1, platformIndex: 3 },
+            { x: 1700, y: 280, width: 40, height: 40, speed: 2, direction: -1, platformIndex: 4 }
+        ]
+    }
+];
+
+        // Histórias por fase
+        const stories = [
+            { title: "Fase 1: Primeiros Olhares", text: "Gabi começou a frequentar a academia, eu há via entre os pesos e halteres. Seus olhares tímidos foram tipo, APAIXONANTE!" },
+            { title: "Fase 2: O 'Hacker do Amor'", text: "Usando minhas habilidades, dei uma boa stalkeada e encontrei o seu instagram. Dei um pulo quando encontrei aquilo" },
+            { title: "Fase 3: A Primeira Mensagem", text: "Sempre postei storys na intenção de chamar sua atenção. Até que um dia você respondeu meu story.. FOI INCRIVEL. Pena que te assustei contando como te encontrei." },
+            { title: "Fase 4: O Primeiro Beijo", text: "Continuamos conversando, e depois de muuuuita luta, finalmente consegui um beijo seu, aquele momento foi mágico, a virada do jogo.." },
+            { title: "Fase 5: FELIZ ANIVERSÁRIO!", text: "Feliz aniversário, meu amooooor! Hoje é um dia especial, assim como cada momento que passamos juntos. Desde aqueles primeiros olhares na academia até aqui, cada fase da nossa jornada foi incrível. Que este dia seja repleto de alegria, amor e muitas surpresas. Você é a luz da minha vida, e eu sou eternamente grato por ter você ao meu lado. Te amo mais do que palavras podem expressar. Feliz aniversário, minha linda!" }
+        ];
+
+        // Desenha o gatinho
+        function drawCat() {
+            ctx.fillStyle = '#ff6699';
+            ctx.beginPath();
+            ctx.arc(cat.x - cameraX, cat.y, cat.width / 2, 0, Math.PI * 2); // Cabeça
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(cat.x - cameraX - 8, cat.y - 12, 6, 6); // Olho esquerdo
+            ctx.fillRect(cat.x - cameraX + 2, cat.y - 12, 6, 6); // Olho direito
+            ctx.fillStyle = '#ff99cc';
+            ctx.beginPath();
+            ctx.moveTo(cat.x - cameraX - 15, cat.y - 20);
+            ctx.lineTo(cat.x - cameraX - 5, cat.y - 35);
+            ctx.lineTo(cat.x - cameraX + 5, cat.y - 20);
+            ctx.fill(); // Orelha esquerda
+            ctx.beginPath();
+            ctx.moveTo(cat.x - cameraX + 15, cat.y - 20);
+            ctx.lineTo(cat.x - cameraX + 5, cat.y - 35);
+            ctx.lineTo(cat.x - cameraX - 5, cat.y - 20);
+            ctx.fill(); // Orelha direita
+            ctx.fillStyle = '#ff6699';
+            ctx.fillRect(cat.x - cameraX - 10, cat.y + 5, 20, 15); // Corpo
+            ctx.beginPath();
+            ctx.arc(cat.x - cameraX, cat.y + 25, 5, 0, Math.PI * 2); // Rabinho
+            ctx.fill();
+        }
+
+        // Desenha plataformas
+        function drawPlatforms() {
+            ctx.fillStyle = '#ff99cc';
+            levels[level - 1].platforms.forEach(p => {
+                ctx.fillRect(p.x - cameraX, p.y, p.width, p.height);
+            });
+        }
+
+        // Desenha corações
+        function drawHearts() {
+            ctx.fillStyle = '#ff3333';
+            levels[level - 1].hearts.forEach(h => {
+                if (!h.collected) {
+                    ctx.beginPath();
+                    ctx.moveTo(h.x - cameraX, h.y + 10);
+                    ctx.bezierCurveTo(h.x - cameraX - 10, h.y, h.x - cameraX - 20, h.y - 10, h.x - cameraX, h.y - 20);
+                    ctx.bezierCurveTo(h.x - cameraX + 20, h.y - 10, h.x - cameraX + 10, h.y, h.x - cameraX, h.y + 10);
+                    ctx.fill();
+                }
+            });
+        }
+
+        // Desenha inimigos
+        function drawEnemies() {
+            ctx.fillStyle = '#666';
+            levels[level - 1].enemies.forEach(e => {
+                ctx.fillRect(e.x - cameraX, e.y - e.height, e.width, e.height);
+                ctx.fillStyle = '#999';
+                ctx.fillRect(e.x - cameraX - 5, e.y - e.height, 5, e.height);
+                ctx.fillRect(e.x - cameraX + e.width, e.y - e.height, 5, e.height);
+                ctx.fillStyle = '#666';
+            });
+        }
+
+        // Atualiza plataformas dinâmicas
+        function updateDynamicPlatforms() {
+            levels[level - 1].platforms.forEach(p => {
+                if (p.dynamic) {
+                    p.width += p.speed;
+                    if (p.width <= p.minWidth || p.width >= p.maxWidth) {
+                        p.speed *= -1;
+                    }
+                }
+            });
+        }
+
+        // Atualiza inimigos para andarem nas plataformas
+        function updateEnemies() {
+            levels[level - 1].enemies.forEach(e => {
+                const platform = levels[level - 1].platforms[e.platformIndex];
+                e.x += e.speed * e.direction;
+                if (e.x < platform.x || e.x + e.width > platform.x + platform.width) {
+                    e.direction *= -1;
+                    e.x = Math.max(platform.x, Math.min(e.x, platform.x + platform.width - e.width));
+                }
+            });
+        }
+
+        // Física e movimento do gato
+        function updateCat() {
+            cat.vx *= friction;
+            cat.vy += gravity;
+            cat.x += cat.vx;
+            cat.y += cat.vy;
+
+            // Colisão com plataformas
+            levels[level - 1].platforms.forEach(p => {
+                if (
+                    cat.x + cat.width / 2 > p.x &&
+                    cat.x - cat.width / 2 < p.x + p.width &&
+                    cat.y + cat.height / 2 > p.y &&
+                    cat.y + cat.height / 2 - cat.vy <= p.y
+                ) {
+                    cat.y = p.y - cat.height / 2;
+                    cat.vy = 0;
+                    cat.jumping = false;
+                }
+            });
+
+            // Movimento lateral
+            if (keys.left) cat.vx = -cat.speed;
+            if (keys.right) cat.vx = cat.speed;
+            if (keys.jump && !cat.jumping) {
+                cat.vy = cat.jumpForce;
+                cat.jumping = true;
+            }
+
+            // Limites laterais
+            cat.x = Math.max(0, Math.min(3000, cat.x));
+
+            // Queda no vazio
+            if (cat.y > canvas.height + 50) {
+                loseLife();
+            }
+
+            // Câmera segue o gatinho
+            cameraX = Math.max(0, cat.x - canvas.width / 2);
+        }
+
+        // Verifica colisão com corações
+        function checkHearts() {
+            levels[level - 1].hearts.forEach(h => {
+                if (
+                    !h.collected &&
+                    cat.x - cat.width / 2 < h.x + h.width &&
+                    cat.x + cat.width / 2 > h.x &&
+                    cat.y - cat.height / 2 < h.y + h.height &&
+                    cat.y + cat.height / 2 > h.y
+                ) {
+                    h.collected = true;
+                    nextLevel();
+                }
+            });
+        }
+
+        // Verifica colisão com inimigos
+        function checkEnemies() {
+            levels[level - 1].enemies.forEach(e => {
+                if (
+                    cat.x - cat.width / 2 < e.x + e.width &&
+                    cat.x + cat.width / 2 > e.x &&
+                    cat.y - cat.height / 2 < e.y &&
+                    cat.y + cat.height / 2 > e.y - e.height
+                ) {
+                    loseLife();
+                }
+            });
+        }
+
+        // Perde uma vida
+        function loseLife() {
+            lives--;
+            if (lives <= 0) {
+                resetGame();
+            } else {
+                cat.x = 50;
+                cat.y = canvas.height - 60;
+                cat.vx = 0;
+                cat.vy = 0;
+                cat.jumping = false;
+                cameraX = 0;
+            }
+            updateStats();
+        }
+
+        // Avança para a próxima fase
+        function nextLevel() {
+            showStory();
+            level++;
+            if (level > 5) level = 5; // Limite na fase final
+            cat.x = 50;
+            cat.y = canvas.height - 60;
+            cat.vx = 0;
+            cat.vy = 0;
+            cat.jumping = false;
+            cameraX = 0;
+            updateStats();
+        }
+
+        // Atualiza estatísticas
+        function updateStats() {
+            statsDisplay.textContent = `Vidas: ${lives} | Fase: ${level}`;
+        }
+
+        // Mostra história
+        function showStory() {
+            const story = stories[level - 1];
+            if (story) {
+                isPaused = true;
+                storyOverlay.style.display = 'flex';
+                storyTitle.textContent = story.title;
+                storyText.textContent = story.text;
+            }
+        }
+
+        // Loop do jogo
+        function gameLoop() {
+            if (!isPaused) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                updateDynamicPlatforms();
+                updateCat();
+                updateEnemies();
+                checkHearts();
+                checkEnemies();
+
+                drawPlatforms();
+                drawHearts();
+                drawEnemies();
+                drawCat();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Controles
+        leftBtn.addEventListener('mousedown', () => keys.left = true);
+        leftBtn.addEventListener('mouseup', () => keys.left = false);
+        rightBtn.addEventListener('mousedown', () => keys.right = true);
+        rightBtn.addEventListener('mouseup', () => keys.right = false);
+        jumpBtn.addEventListener('mousedown', () => keys.jump = true);
+        jumpBtn.addEventListener('mouseup', () => keys.jump = false);
+
+        leftBtn.addEventListener('touchstart', () => keys.left = true);
+        leftBtn.addEventListener('touchend', () => keys.left = false);
+        rightBtn.addEventListener('touchstart', () => keys.right = true);
+        rightBtn.addEventListener('touchend', () => keys.right = false);
+        jumpBtn.addEventListener('touchstart', () => keys.jump = true);
+        jumpBtn.addEventListener('touchend', () => keys.jump = false);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') keys.left = true;
+            if (e.key === 'ArrowRight') keys.right = true;
+            if (e.key === ' ' || e.key === 'ArrowUp') keys.jump = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') keys.left = false;
+            if (e.key === 'ArrowRight') keys.right = false;
+            if (e.key === ' ' || e.key === 'ArrowUp') keys.jump = false;
+        });
+
+        // Botão Continuar
+        nextBtn.addEventListener('click', () => {
+            storyOverlay.style.display = 'none';
+            isPaused = false;
+        });
+
+        // Reinicia o jogo
+        function resetGame() {
+            lives = 51;
+            level = 1;
+            cat.x = 50;
+            cat.y = canvas.height - 60;
+            cat.vx = 0;
+            cat.vy = 0;
+            cat.jumping = false;
+            cameraX = 0;
+            levels.forEach(l => l.hearts.forEach(h => h.collected = false));
+            isPaused = false;
+            storyOverlay.style.display = 'none';
+            updateStats();
+        }
+
+        restartBtn.addEventListener('click', resetGame);
+
+        // Inicia o jogo
+        updateStats();
+        gameLoop();
+    </script>
+</body>
+</html>
