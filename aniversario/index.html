@@ -151,9 +151,19 @@
 </head>
 <body>
     <!-- Música de fundo -->
-    <iframe width="0" height="0" src="https://www.youtube.com/embed/4UjPRvyn3J4?autoplay=1&loop=1&playlist=4UjPRvyn3J4" frameborder="0" allowfullscreen></iframe>
-
     <header>
+        <video autoplay loop style="display:none;">
+            <source src="1.mp4" type="video/mp4">
+            Seu navegador não suporta o elemento de vídeo.
+        </video>
+        
+        <script>
+            // Ajustando o volume para 30%
+            const video = document.querySelector('video');
+            video.volume = 0.3;
+        </script>
+        
+        
         <h1>GabiCat: O jogo feito pra mais linda</h1>
         <button id="restartBtn">Reiniciar</button>
     </header>
@@ -295,11 +305,11 @@
 
         // Histórias por fase
         const stories = [
-            { title: "Fase 1: Primeiros Olhares", text: "Gabi começou a frequentar a academia, eu há via entre os pesos e halteres. Seus olhares tímidos foram tipo, APAIXONANTE!" },
-            { title: "Fase 2: O 'Hacker do Amor'", text: "Usando minhas habilidades, dei uma boa stalkeada e encontrei o seu instagram. Dei um pulo quando encontrei aquilo" },
-            { title: "Fase 3: A Primeira Mensagem", text: "Sempre postei storys na intenção de chamar sua atenção. Até que um dia você respondeu meu story.. FOI INCRIVEL. Pena que te assustei contando como te encontrei." },
-            { title: "Fase 4: O Primeiro Beijo", text: "Continuamos conversando, e depois de muuuuita luta, finalmente consegui um beijo seu, aquele momento foi mágico, a virada do jogo.." },
-            { title: "Fase 5: FELIZ ANIVERSÁRIO!", text: "Feliz aniversário, meu amooooor! Hoje é um dia especial, assim como cada momento que passamos juntos. Desde aqueles primeiros olhares na academia até aqui, cada fase da nossa jornada foi incrível. Que este dia seja repleto de alegria, amor e muitas surpresas. Você é a luz da minha vida, e eu sou eternamente grato por ter você ao meu lado. Te amo mais do que palavras podem expressar. Feliz aniversário, minha linda!" }
+            { title: "Fase 1: Primeiros Olhares", text: "Gabi começou a frequentar a academia, eu há via entre os pesos e halteres. Seus olhares tímidos foram APAIXONANTES! Tentei de todas as formas encontrar você, eu já sabia que seriamos bem mais do que conhecidos" },
+            { title: "Fase 2: O 'Hacker do Amor'", text: "Usando minhas habilidades, dei uma boa stalkeada e encontrei o seu instagram. Dei um pulo quando encontrei aquilo! Rapidamente te adicionei, não podia deixar aquela oportunidade passar" },
+            { title: "Fase 3: A Primeira Mensagem", text: "Sempre postei storys na intenção de chamar sua atenção. Até que um dia você respondeu meu story.. FOI INCRIVEL. Pena que te assustei contando como te encontrei. Voltei a estaca zero.. Mas do nada, você responde outro story!! Eu pulei de alegria" },
+            { title: "Fase 4: O Primeiro Beijo", text: "Continuamos conversando, e depois de muuuuita luta, finalmente consegui um beijo seu, aquele momento foi mágico, a virada do jogo.. Um tempo depois, 04/11/2023, eu te peço em namoro na Ponte do Shopping, a melhor decisão da minha vida." },
+            { title: "Fase 5: FELIZ ANIVERSÁRIO!", text: "E HOJE ESTAMOS AQUI! Feliz aniversário, meu amooooor! Hoje é um dia especial, assim como cada momento que passamos juntos. Desde aqueles primeiros olhares na academia até aqui, cada fase da nossa jornada foi incrível. Que este dia seja repleto de alegria, amor e muitas surpresas. Você é a luz da minha vida, e eu sou eternamente grato por ter você ao meu lado. Te amo mais do que palavras podem expressar. Feliz aniversário, minha linda!" }
         ];
 
         // Desenha o gatinho
